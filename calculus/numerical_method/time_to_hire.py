@@ -15,13 +15,16 @@ x = # of hires / # of CVs
 th = time in weeks to convert one CV to a hire
 ei = effort for a single interview in hrs
 """
+import sys
 import matplotlib.pyplot as plt
 import seaborn as sbn
 import pandas as pd
 import numpy as np
 import math
 
-LESSON_NAME = 'Lesson 02: Numerical methods'
+LESSON_NAME = 'Lesson 03: Numerical methods'
+E_TOLERANCE = 0.0001
+H_DEFAULT = 0.0001
 PARAMETERS = {
     'xi': 0.5,
     'x': 0.05, # ~ 0.5 * 0.33 *0.33
@@ -44,6 +47,57 @@ def run_lesson():
     print ('congratulations! \n you have completed %s' % LESSON_NAME)
 
 
+# lesson part 03 Newton's method Equation 2 centered derivative (only used in derivation)
+def dfdx(f, x, h=H_DEFAULT):
+    centered = 0.5 * 1/h * (f(x+h) - f(x-h))
+    return centered
+
+
+# leson part 03 Newton's method
+def newton_rhapson(z, target, ig, h=H_DEFAULT, tol=E_TOLERANCE):
+    def f(x):
+        return z(x) - target
+
+    def is_solved(g):
+        loss = f(g)**2
+        return loss < tol
+
+    def newton_step(g):
+        # combination of equation 2 centered derivative + 1st order Taylor series appx
+        g_next = g - f(g) / (f(g+h)-f(g-h)) * 2 * h
+        return g_next
+
+    g = ig
+    print ('guess %.4f, is solved? %s' % (g, is_solved(g)))
+    while not is_solved(g):
+        g = newton_step(g)
+        print('guess %.4f, is solved? %s' % (g, is_solved(g)))
+
+    return g
+
+
+# lesson part 03 Newton's method
+def prob_hire(effort, tth, **kwargs):
+    xi = kwargs['xi']
+    x = kwargs['x']
+    ei = kwargs['ei']
+    th = kwargs['th']
+
+    ph = 1 - (1 - x)**(effort/(xi*ei)*(tth-th))
+
+    return ph
+
+
+# lesson part 03 Newton's method
+def effort_hpw_nr(tth, p, e_guess, **kwargs):
+    def z(effort):
+        return prob_hire(effort, tth, **kwargs)
+
+    hpw = newton_rhapson(z, p, e_guess)
+
+    return hpw
+
+# lesson part 02: time to conversion using algebraic trick
 def effort_hpw(tth, p, **kwargs):
     xi = kwargs['xi']
     x = kwargs['x']
@@ -66,4 +120,10 @@ def plot_effort(p, tth_range, Npts, kwargs):
 
 
 if __name__ == "__main__":
-    run_lesson()
+    #run_lesson()
+
+    tth = float(sys.argv[1])
+    p = float(sys.argv[2])
+    e_guess = float(sys.argv[3])
+    hpw = effort_hpw_nr(tth, p, e_guess, **PARAMETERS)
+    print('final answer: %.4f' % hpw)
