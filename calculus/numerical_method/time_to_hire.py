@@ -20,7 +20,7 @@ import seaborn as sbn
 import pandas as pd
 import numpy as np
 import math
-# test
+
 LESSON_NAME = 'Lesson 02: Numerical methods'
 PARAMETERS = {
     'xi': 0.5,
